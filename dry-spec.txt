@@ -1,0 +1,16 @@
+.:: Dry Language Specification ::.
+
+1. Syntax
+2. Remarks
+---
+
+.: 1 - Syntax :.
+
+S   = E | Def '.'
+E   = {prefix | variable | '(' E ')'}
+Def = E '=' E
+
+prefix   = lowercase_words
+variable = uppercase_words
+---
+
