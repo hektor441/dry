@@ -45,12 +45,15 @@ def match(x, m):
     # x and m are always lists [x0 x1 x.i] [m0 m1 m.k]
     # where each x.i and m.i can be either Keyword or Variable
     
+    if type(x) == str:
+        x = [x]
+    
     lx = len(x)
     
     # when x and m have different length they cannot match
     if lx != len(m):
         return False
-    
+        
     for i in range(0, lx):
         xi = x[i]
         mi = m[i]
@@ -129,19 +132,69 @@ def reduce(x):
         if match(x, matches[i]):
             # important, _COPY_ the reduction from the dictionary!
             red = flatten(reductions[i][:])
-            
-            if type(red) != list:
+            if x[0] in special or x in special:
+                # special reduction identified
+                # special reductions are always of the form <<prefix arguments>>
+                if x[0] in special:
+                    red = reduce_special(x[0], x[1:])
+                else:
+                    red = reduce_special(x, x)
+            elif type(red) != list:
                 red = place_vars([red])
             else:
                 red = place_vars(red)
-                
+            
             del_var()
             return red
     return x
 
 def continuously_reduce(x):
+    # reduce x until a stable form is reached
     y = reduce(x[:])
     while x != y:
         x = y[:]
         y = reduce(x[:])
     return y
+
+# --- Special Reductions ---
+special = ["out", "str", "strs", "error", "beep", "dot"]
+
+for pfx in ["beep", "dot"]:
+    # nullary special prefixes
+    add_reduction([pfx], [pfx])
+
+for pfx in ["out", "str", "strs", "error"]:
+    # unary special prefixes
+    add_reduction([pfx, "X"], ["X"])
+
+for pfx in ["str", "strs"]:
+    # binary special prefixes
+    add_reduction([pfx, "X", "Y"], ["Y"])
+
+def pretty(x):
+    if type(x) == list:
+        return "(" + " ".join(pretty(i) for i in x) + ")"
+    return x
+
+def reduce_special(pfx, args):
+    ret = ""
+    if pfx == "out":
+        # output the arguments
+        print(pretty(flatten(args)))
+        ret = args[0]
+    elif pfx == "error":
+        print('\033[91m', pretty(flatten(args)), '\033[0m')
+    elif pfx == "str":
+        # joins two arguments 
+        ret = pretty(args[0]) + pretty(args[1])
+    elif pfx == "strs":
+        # joins two arguments 
+        ret = pretty(args[0]) + " " + pretty(args[1])
+    elif pfx == "beep":
+        print("\a")
+    elif pfx == "dot":
+        ret = "."
+    else:
+        print(pfx, "not yet implemented!")
+    return ret
+    

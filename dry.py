@@ -22,7 +22,7 @@ def separate(s):
 
 class Code:
     def __init__(self, code):
-        self.code = separate(code)
+        self.code = code
         
         if len(code) == 0:
             print("The code is empty")
@@ -73,10 +73,10 @@ def parse(p):
             p.succ()
             reduction = parse_expr(p)
             add_reduction(expr, reduction)
-            print("Added reduction ",expr, "->", reduction)
+            #print("Added reduction ",expr, "->", reduction)
         else:
             ret = continuously_reduce(expr)
-            print(ret)
+            #print(ret)
         p.expc(".")
         
         
@@ -85,5 +85,8 @@ INLINE = len(argv) == 1
 if INLINE:
     print("Not yet implemented")
 else:
-    code = Code("\n".join(open(argv[1]).readlines()))
-    parse(code)
+    file = "\n".join(open(argv[1]).readlines())
+    file = separate(file)
+    if len(file) > 1:
+        code = Code(file)
+        parse(code)
