@@ -1,0 +1,37 @@
+
+eq X X = t.
+eq X Y = f.
+
+asserteq X X = out t.
+asserteq X Y = error (strs X (strs !! Y)).
+
+X ~ Y = asserteq X Y.
+
+# --- SINGLE WORD REDUCTIONS --- .
+
+alpha = beta.
+
+# --- PREFIX ARG REDUCTIONS --- .
+
+prefix ARG1 ARG2 = effect (prefix ARG1) (prefix ARG2).
+
+prefix ARG = effect ARG.
+
+
+effect (effect ARG) = double effect ARG.
+
+effect (effect ARG1) (effect ARG2) = effect ARG1 ARG2.
+effect ARG1 (effect ARG2) = effect (prefix ARG1) ARG2.
+effect (effect ARG1) ARG2 = effect ARG1 (prefix ARG2).
+
+
+alpha ~ beta.
+
+(prefix a)     ~ (effect a).
+(prefix alpha) ~ (effect beta).
+
+(prefix (prefix a)) ~ (double effect a).
+
+(prefix a b) ~ (effect a b).
+(prefix alpha beta) ~ (effect beta beta).
+

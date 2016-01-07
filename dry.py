@@ -78,8 +78,17 @@ def parse(p):
             ret = continuously_reduce(expr)
             #print(ret)
         p.expc(".")
-        
-        
+
+    
+    while len(OUT_STREAM) + len(ERR_STREAM) > 0:
+        if len(ERR_STREAM) > 0:
+            print(ERR_STREAM[0])
+            ERR_STREAM.pop(0)
+        if len(OUT_STREAM) > 0:
+            print(OUT_STREAM[0])
+            OUT_STREAM.pop(0)
+
+
 INLINE = len(argv) == 1
 
 if INLINE:

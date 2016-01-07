@@ -17,19 +17,33 @@ def flatten(x):
 
 PVARS = {}
 
+def to_tuple(x):
+    if type(x) == list:
+        for i in range(0, len(x)):
+            x[i] = to_tuple(x[i])
+        return tuple(x)
+    return x
+
+def to_list(x):
+    if type(x) == tuple:
+        x = list(x)
+        for i in range(0, len(x)):
+            x[i] = to_list(x)
+    return x
+
 def add_var(k, v):
     if type(k) == list:
-        k = tuple(k)
+        k = to_tuple(k)
     PVARS[k] = v
     
 def get_var(k):
     if type(k) == list:
-        return PVARS[tuple(k)]
+        return PVARS[to_tuple(k)]
     return PVARS[k]
 
 def in_var(k):
     if type(k) == list:
-        return tuple(k) in PVARS
+        return to_tuple(k) in PVARS
     return k in PVARS
 
 def del_var():
@@ -65,13 +79,13 @@ def match(x, m):
             # a variable can match either a keyword or another variable
             # x[i] now is trying to give an actual value to m[i]
             
-            if in_var(mi):
+            if in_var(mi[:]):
                 # if any value has already been given to m[i], x[i] should match it 
-                if xi != get_var(mi):
+                if xi != get_var(mi[:]):
                     return False
             else:
                 # otherwise store x[i] as value of m[i] in PVARS
-                add_var(mi, xi)
+                add_var(mi[:], xi)
         elif typeof(mi) == "Group":
             # a group has to be matched with another group
             if typeof(xi) != "Group":
@@ -95,10 +109,10 @@ def add_reduction(m, r):
 
 def place_vars(x):
     for i in range(0, len(x)):
-        if in_var(x[i]):
-            x[i] = get_var(x[i])
-        elif type(x[i]) == list:
-            x[i] = place_vars(x[i])
+        if in_var(x[i][:]):
+            x[i] = get_var(x[i][:])
+        elif type(x[i]) in [list, tuple]:
+            x[i] = place_vars(x[i][:])
     return x
 
 def reduce(x):
@@ -114,7 +128,7 @@ def reduce(x):
             # reduce each word in the phrase
             for i in range(0, len(x)):
                 if type(x[i]) == list:
-                    x[i] = reduce(x[i])
+                    x[i] = continuously_reduce(x[i])
                 else:
                     rx = (reduce([x[i]]))
                     if type(rx) == list:
@@ -157,9 +171,9 @@ def continuously_reduce(x):
     return y
 
 # --- Special Reductions ---
-special = ["out", "str", "strs", "error", "beep", "dot"]
+special = ["out", "str", "strs", "error", "beep", "dot", "#"]
 
-for pfx in ["beep", "dot"]:
+for pfx in ["beep", "dot" ,"#"]:
     # nullary special prefixes
     add_reduction([pfx], [pfx])
 
@@ -176,14 +190,17 @@ def pretty(x):
         return "(" + " ".join(pretty(i) for i in x) + ")"
     return x
 
+OUT_STREAM = []
+ERR_STREAM = []
+
 def reduce_special(pfx, args):
     ret = ""
     if pfx == "out":
         # output the arguments
-        print(pretty(flatten(args)))
+        OUT_STREAM.append(pretty(flatten(args)))
         ret = args[0]
     elif pfx == "error":
-        print('\033[91m', pretty(flatten(args)), '\033[0m')
+        ERR_STREAM.append('\033[91m' + pretty(flatten(args)) + '\033[0m')
     elif pfx == "str":
         # joins two arguments 
         ret = pretty(args[0]) + pretty(args[1])
@@ -194,6 +211,8 @@ def reduce_special(pfx, args):
         print("\a")
     elif pfx == "dot":
         ret = "."
+    elif pfx == "#":
+        ret = ""
     else:
         print(pfx, "not yet implemented!")
     return ret
