@@ -200,7 +200,8 @@ def reduce_special(pfx, args):
         OUT_STREAM.append(pretty(flatten(args)))
         ret = args[0]        
     elif pfx == "error":
-        ERR_STREAM.append('\033[91m' + pretty(flatten(args)) + '\033[0m')
+
+        ERR_STREAM.append("Error ({0}): " + pretty(flatten(args)))
     elif pfx == "str":
         # joins two arguments 
         ret = pretty(args[0]) + pretty(args[1])

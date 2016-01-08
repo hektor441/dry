@@ -62,13 +62,16 @@ def parse_expr(p):
 
     return ret
 
+RED = '\033[91m'
+NOC = '\033[0m'
+
 def parse(p):
-    
     if p.tokn == "import":
         p.succ()
         while not (p.tokn in [".", p.eof]):
-            code = file_to_code(p.tokn)    
+            code = file_to_code(p.tokn + ".dry", from_file=p.module_name)    
             if code: parse(code)
+            p.succ()
         p.expc(".")
     
     while p.tokn != p.eof:
@@ -83,17 +86,20 @@ def parse(p):
             ret = continuously_reduce(expr)
             #print(ret)
         p.expc(".")
-    
-    while len(OUT_STREAM) + len(ERR_STREAM) > 0:
-        if len(ERR_STREAM) > 0:
-            print(ERR_STREAM[0])
-            ERR_STREAM.pop(0)
-            
-        if len(OUT_STREAM) > 0:
-            print(OUT_STREAM[0])
-            OUT_STREAM.pop(0)
+        
+        print(RED, end="")
+        while len(ERR_STREAM) > 0:
+            if len(ERR_STREAM) > 0:
+                print(ERR_STREAM[0].format(p.module_name))
+                ERR_STREAM.pop(0)
+        print(NOC, end="")
+        
+        while len(OUT_STREAM) > 0:        
+            if len(OUT_STREAM) > 0:
+                print(OUT_STREAM[0])
+                OUT_STREAM.pop(0)
 
-def file_to_code(filename):
+def file_to_code(filename, from_file="init"):
     try:
         file = "\n".join(open(filename).readlines())
         file = separate(file)   
@@ -102,7 +108,7 @@ def file_to_code(filename):
             code.module_name = filename
             return code
     except IOError:
-        ERR_STREAM.append()
+        ERR_STREAM.append("Error ("+from_file+"): Could not open "+filename)
     return None
 
 
@@ -114,4 +120,3 @@ else:
     code = file_to_code(argv[1])
     if code:
         parse(code)
-    
