@@ -35,3 +35,29 @@ alpha ~ beta.
 (prefix a b) ~ (effect a b).
 (prefix alpha beta) ~ (effect beta beta).
 
+
+not t = f.
+not f = t.
+
+zeql X (X T) = t.
+zeql X (Y T) = f.
+
+(k X Y) X F = t.
+(k X Y) Z G = f.
+
+meql X (A B) X = t.
+meql X (A B) Y = f.
+
+out (zeql x (x y)).
+out (not (zeql x (y y))).
+
+out ((k x y) x t).
+out (not ((k x y) dxsdsx r)).
+
+out (meql x (y z) x).
+out (not (meql x (y z) y)).
+
+
+g = (eq t t) d.
+
+out g.

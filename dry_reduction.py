@@ -171,7 +171,7 @@ def continuously_reduce(x):
     return y
 
 # --- Special Reductions ---
-special = ["out", "str", "strs", "error", "beep", "dot", "#"]
+special = ["out", "str", "strs", "error", "beep", "import"]
 
 for pfx in ["beep", "dot" ,"#"]:
     # nullary special prefixes
@@ -198,7 +198,7 @@ def reduce_special(pfx, args):
     if pfx == "out":
         # output the arguments
         OUT_STREAM.append(pretty(flatten(args)))
-        ret = args[0]
+        ret = args[0]        
     elif pfx == "error":
         ERR_STREAM.append('\033[91m' + pretty(flatten(args)) + '\033[0m')
     elif pfx == "str":
@@ -208,11 +208,7 @@ def reduce_special(pfx, args):
         # joins two arguments 
         ret = pretty(args[0]) + " " + pretty(args[1])
     elif pfx == "beep":
-        print("\a")
-    elif pfx == "dot":
-        ret = "."
-    elif pfx == "#":
-        ret = ""
+        OUT_STREAM.append("\a")
     else:
         print(pfx, "not yet implemented!")
     return ret

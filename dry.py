@@ -18,7 +18,7 @@ def separate(s):
     
     while "" in s:
         s.remove("")
-    return s
+    return s    
 
 class Code:
     def __init__(self, code):
@@ -31,6 +31,7 @@ class Code:
         self.eof = "% EOF %"
         self.indx = 0
         self.tokn = self.code[0]
+        self.module_name = ""
 
     def succ(self):
         if self.indx + 1 < len(self.code):
@@ -43,10 +44,6 @@ class Code:
         if self.tokn == x:
             return self.succ()
         self.error(x + " expected, " + self.tokn + " found")
-    
-    def error(self, msg):
-        print(msg)
-        exit()
 
 ### PARSING ###
 
@@ -64,8 +61,16 @@ def parse_expr(p):
             p.succ()
 
     return ret
-    
+
 def parse(p):
+    
+    if p.tokn == "import":
+        p.succ()
+        while not (p.tokn in [".", p.eof]):
+            code = file_to_code(p.tokn)    
+            if code: parse(code)
+        p.expc(".")
+    
     while p.tokn != p.eof:
         expr = parse_expr(p)
         if p.tokn == "=":
@@ -78,15 +83,27 @@ def parse(p):
             ret = continuously_reduce(expr)
             #print(ret)
         p.expc(".")
-
     
     while len(OUT_STREAM) + len(ERR_STREAM) > 0:
         if len(ERR_STREAM) > 0:
             print(ERR_STREAM[0])
             ERR_STREAM.pop(0)
+            
         if len(OUT_STREAM) > 0:
             print(OUT_STREAM[0])
             OUT_STREAM.pop(0)
+
+def file_to_code(filename):
+    try:
+        file = "\n".join(open(filename).readlines())
+        file = separate(file)   
+        if len(file) > 1:
+            code = Code(file)
+            code.module_name = filename
+            return code
+    except IOError:
+        ERR_STREAM.append()
+    return None
 
 
 INLINE = len(argv) == 1
@@ -94,8 +111,7 @@ INLINE = len(argv) == 1
 if INLINE:
     print("Not yet implemented")
 else:
-    file = "\n".join(open(argv[1]).readlines())
-    file = separate(file)
-    if len(file) > 1:
-        code = Code(file)
+    code = file_to_code(argv[1])
+    if code:
         parse(code)
+    
