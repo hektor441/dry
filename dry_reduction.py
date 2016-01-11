@@ -69,6 +69,10 @@ def match(x, m):
         
     for i in range(0, lx):
         xi = x[i]
+        
+        if i >= len(m):
+            return False
+        
         mi = m[i]
         if typeof(mi) == "Keyword":
             # a keyword can only match another, identical, keyword
@@ -205,9 +209,9 @@ for pfx in ["out", "str", "strs", "error"]:
     # unary special prefixes
     add_reduction([pfx, "X"], ["X"])
 
-for pfx in ["str", "strs"]:
+for pfx in ["str", "strs", "out"]:
     # binary special prefixes
-    add_reduction([pfx, "X", "Y"], ["Y"])
+    add_reduction([pfx, "X", "*Y"], ["*Y"])
 
 def pretty(x):
     if type(x) == list:
