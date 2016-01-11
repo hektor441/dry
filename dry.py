@@ -1,5 +1,5 @@
 from sys import argv
-from dry_reduction import *
+from dry_reduction_2 import *
 
 ### UTILITIES ###
 

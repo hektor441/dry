@@ -3,7 +3,7 @@
 def typeof(x):
     if type(x) == list: return "Group"
     elif type(x) == str:
-        if x[0].isupper() or x[0] == "?": return "Variable"
+        if x[0].isupper() or x[0] in ["?", "!", "*"]: return "Variable"
         else: return "Keyword"
     raise TypeError
 
@@ -15,8 +15,7 @@ def flatten(x):
 # --- Variable Grabbing ---
 # all the necessary precautions when dealing with a dictionary and lists as keys
 
-PVARS = {}
-
+PVARS = {}                               
 def to_tuple(x):
     if type(x) == list:
         for i in range(0, len(x)):
@@ -64,8 +63,8 @@ def match(x, m):
     
     lx = len(x)
     
-    # when x and m have different length they cannot match
-    if lx != len(m):
+    # when x is shorter than m they cannot match
+    if lx < len(m):
         return False
         
     for i in range(0, lx):
@@ -83,8 +82,19 @@ def match(x, m):
                 # if any value has already been given to m[i], x[i] should match it 
                 if xi != get_var(mi[:]):
                     return False
+            elif mi[0] == "*":
+                # *VAR as a final argument captures the rest of x and finish matching
+                if i + 1 != len(m): return False
+                add_var(mi[:], x[i:])
+                return True
             else:
                 # otherwise store x[i] as value of m[i] in PVARS
+                if mi[0] == "?" and typeof(xi) != "Variable":
+                    # ?VAR matches only with variables
+                    return False
+                elif mi[0] == "!" and typeof(xi) != "Keyword":
+                    # !VAR matches only with keywords
+                    return False
                 add_var(mi[:], xi)
         elif typeof(mi) == "Group":
             # a group has to be matched with another group
@@ -95,6 +105,12 @@ def match(x, m):
             # same for the variables grabbed from now on
             if not match(xi, mi):
                 return False
+        elif mi == "*":
+            # capture group
+            # prefix * ~ prefix A B C ... N
+            if len(x[i:]) == 0:
+                return False
+            
     return True
 
 
@@ -110,7 +126,12 @@ def add_reduction(m, r):
 def place_vars(x):
     for i in range(0, len(x)):
         if in_var(x[i][:]):
-            x[i] = get_var(x[i][:])
+            if x[i][0] == "*":
+                group = get_var(x[i][:])
+                x.pop(i)
+                x = x[:i] + group + x[i+1:]
+            else:
+                x[i] = get_var(x[i][:])
         elif type(x[i]) in [list, tuple]:
             x[i] = place_vars(x[i][:])
     return x
@@ -145,7 +166,9 @@ def reduce(x):
         del_var() # reset dictionary
         if match(x, matches[i]):
             # important, _COPY_ the reduction from the dictionary!
+            
             red = flatten(reductions[i][:])
+
             if x[0] in special or x in special:
                 # special reduction identified
                 # special reductions are always of the form <<prefix arguments>>
@@ -153,6 +176,7 @@ def reduce(x):
                     red = reduce_special(x[0], x[1:])
                 else:
                     red = reduce_special(x, x)
+                    
             elif type(red) != list:
                 red = place_vars([red])
             else:
