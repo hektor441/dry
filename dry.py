@@ -16,6 +16,17 @@ def separate(s):
         s = s.replace(c, " "+c+" ")
     s = s.split(" ")
     
+    # remove comments
+    
+    c = 0    
+    while c < len(s):
+        if s[c] == "#":
+            while s[c] != "\n": 
+                s.pop(c)
+                if c >= len(s):
+                    break
+        c+= 1
+    
     while "" in s:
         s.remove("")
     return s    
@@ -43,7 +54,7 @@ class Code:
     def expc(self, x):
         if self.tokn == x:
             return self.succ()
-        self.error(x + " expected, " + self.tokn + " found")
+        ERR_STREAM.append(x + " expected, " + self.tokn + " found")
 
 ### PARSING ###
 

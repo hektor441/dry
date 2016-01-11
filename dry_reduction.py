@@ -173,7 +173,7 @@ def continuously_reduce(x):
 # --- Special Reductions ---
 special = ["out", "str", "strs", "error", "beep", "import"]
 
-for pfx in ["beep", "dot" ,"#"]:
+for pfx in ["beep", "dot"]:
     # nullary special prefixes
     add_reduction([pfx], [pfx])
 

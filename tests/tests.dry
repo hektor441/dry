@@ -1,6 +1,7 @@
 import tests/tests-module.
 
 outside help.
-error this-is-an-error.
+error this-is-an-error. #this is a comment
 out this-is-not.
 
+# this is another comment
